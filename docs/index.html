@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="ru">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NordFlow Tasks — кейс: Бэкенд + ТЗ для дизайнера</title>
+<style>
+  :root { --deep:#0B2E4F; --teal:#00A9A5; --sun:#FF7A59; --glacier:#4CC9F0; --graphite:#1B2735; --snow:#F4F7FA; --line:#E1E7EF; --muted:#667486; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--snow); color:var(--graphite); font:16px/1.6 Inter, "Segoe UI", system-ui, sans-serif; }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 40px 24px 72px; }
+  header { border-left: 6px solid var(--teal); padding-left: 20px; margin-bottom: 32px; }
+  h1 { font: 700 40px/1.15 Montserrat, Inter, sans-serif; color: var(--deep); margin: 0 0 8px; letter-spacing:-.5px; }
+  .sub { color: var(--muted); font-size: 18px; margin: 0; }
+  .tag { display:inline-block; margin-top:14px; padding:4px 10px; border-radius:999px; background:#e6f6f6; color:#067b78; font-size:13px; font-weight:600; }
+  h2 { font: 600 22px/1.3 Montserrat, Inter, sans-serif; color: var(--deep); margin: 36px 0 12px; }
+  .card { background:#fff; border:1px solid var(--line); border-radius:10px; padding:20px 22px; }
+  .grid { display:grid; gap:16px; grid-template-columns: repeat(auto-fit, minmax(260px,1fr)); }
+  table { width:100%; border-collapse: collapse; background:#fff; border:1px solid var(--line); border-radius:10px; overflow:hidden; }
+  th, td { text-align:left; padding:9px 12px; border-bottom:1px solid var(--line); font-size:14.5px; vertical-align: top; }
+  th { background:#eef3f8; color:var(--deep); font-weight:600; }
+  tr:last-child td { border-bottom:none; }
+  code { background:#eef3f8; padding:1px 6px; border-radius:4px; font:14px Consolas, monospace; color:#0b4a6f; }
+  ul { margin:8px 0 0; padding-left:20px; }
+  li { margin:5px 0; }
+  a { color:#0b6ea8; }
+  .stat { font:700 30px/1 Montserrat, Inter, sans-serif; color:var(--teal); }
+  .stat-label { color:var(--muted); font-size:13px; text-transform:uppercase; letter-spacing:.04em; }
+  footer { margin-top:44px; padding-top:16px; border-top:1px solid var(--line); color:var(--muted); font-size:14px; }
+  .note { background:#fff5f2; border-left:4px solid var(--sun); padding:14px 16px; border-radius:0 8px 8px 0; font-size:15px; }
+</style>
+<div class="wrap">
+  <header>
+    <h1>NordFlow Tasks</h1>
+    <p class="sub">Трекер проектов и задач: роли, Kanban-доска, комментарии, уведомления</p>
+    <span class="tag">Бэкенд + ТЗ для дизайнера</span>
+  </header>
+
+  <div class="grid">
+    <div class="card"><div class="stat">13</div><div class="stat-label">тестов, все зелёные</div></div>
+    <div class="card"><div class="stat">10+</div><div class="stat-label">эндпоинтов API</div></div>
+    <div class="card"><div class="stat">0</div><div class="stat-label">внешних зависимостей</div></div>
+  </div>
+
+  <h2>Откуда задача</h2>
+  <div class="card">
+    <p style="margin:0 0 8px"><strong>ТЗ клиента NordFlow из урока FGIp07 (документ курса)</strong></p>
+    <p style="margin:0 0 10px"><a href="https://university.zerocoder.ru/pl/teach/control/lesson/view?id=349668024">https://university.zerocoder.ru/pl/teach/control/lesson/view?id=349668024</a></p>
+    <p style="margin:0; color:var(--muted)">Рыночный аналог: <a href="https://www.weblancer.net/freelance/veb-programmirovanie-31/razrabotka-veb-prilozheniya-servisa-planirovaniya-zadach-1253818/">Weblancer #1253818</a>, разработка сервиса планирования задач</p>
+  </div>
+
+  <h2>Что умеет</h2>
+  <ul><li>Три роли с разной видимостью данных: администратор, руководитель проекта, сотрудник</li><li>Права проверяются в каждом обработчике: сотрудник не видит чужие проекты и задачи</li><li>Смена статуса пишет историю и уведомляет ответственного</li><li>Поиск не спотыкается о «ё»: «верстк» находит «Вёрстка»</li><li>Сессия живёт в хранилище — после обновления страницы вход не теряется</li><li>Пароли хранятся как scrypt-хеш, а не в открытом виде</li></ul>
+
+  <h2>API</h2>
+  <table>
+    <thead><tr><th style="width:90px">Метод</th><th>Адрес</th><th>Назначение</th></tr></thead>
+    <tbody><tr><td><code>POST</code></td><td><code>/api/login</code></td><td>вход по почте и паролю, выдаёт токен</td></tr><tr><td><code>GET</code></td><td><code>/api/dashboard</code></td><td>счётчики, ближайшие сроки, лента изменений, сводка по команде</td></tr><tr><td><code>GET</code></td><td><code>/api/users</code></td><td>команда с загрузкой и просрочками</td></tr><tr><td><code>POST</code></td><td><code>/api/projects</code></td><td>создание проекта (администратор)</td></tr><tr><td><code>GET</code></td><td><code>/api/projects/:id/board</code></td><td>Kanban-доска: пять колонок с карточками</td></tr><tr><td><code>GET</code></td><td><code>/api/tasks</code></td><td>задачи с фильтрами: статус, проект, приоритет, срок, просрочка, поиск</td></tr><tr><td><code>POST</code></td><td><code>/api/tasks/:id/status</code></td><td>перемещение карточки между колонками</td></tr><tr><td><code>POST</code></td><td><code>/api/tasks/:id/comments</code></td><td>комментарии к задаче</td></tr><tr><td><code>GET</code></td><td><code>/api/notifications</code></td><td>уведомления: назначение, срок, статус, комментарий, просрочка</td></tr><tr><td><code>GET</code></td><td><code>/api/search?q=</code></td><td>поиск по проектам, задачам и сотрудникам</td></tr></tbody>
+  </table>
+
+  <h2>Как запустить</h2>
+  <div class="card">
+    <p style="margin:0 0 8px">Нужен только Node.js 20+ — зависимостей нет, сборки нет.</p>
+    <p style="margin:0 0 8px"><code>node server.js</code> — сервис поднимется и создаст демо-данные при первом запуске.</p>
+    <p style="margin:0 0 8px"><code>node --test test/app.test.mjs</code> — прогон тестов.</p>
+    <p style="margin:0; color:var(--muted)">Демо-доступ: anna@nordflow.io / nordflow (администратор), maxim@nordflow.io (руководитель), ilya@nordflow.io (сотрудник)</p>
+  </div>
+
+  <h2>Состав кейса</h2>
+  <div class="grid">
+    <div class="card"><strong>Код</strong><p style="margin:6px 0 0; color:var(--muted)"><code>src/app.js</code> — домен и права, <code>server.js</code> — HTTP, <code>test/</code> — проверки</p></div>
+    <div class="card"><strong><a href="https://github.com/ai4bordon/nordflow-tasks-api/blob/main/%D0%A2%D0%97_%D0%B4%D0%BB%D1%8F_%D0%B4%D0%B8%D0%B7%D0%B0%D0%B9%D0%BD%D0%B5%D1%80%D0%B0.md">ТЗ для дизайнера</a></strong><p style="margin:6px 0 0; color:var(--muted)">Функциональные требования и user flow. Визуальных решений в задании нет намеренно — их предлагает дизайнер</p></div>
+    <div class="card"><strong><a href="https://github.com/ai4bordon/nordflow-tasks-api/blob/main/README.md">README</a></strong><p style="margin:6px 0 0; color:var(--muted)">Запуск, таблица эндпоинтов, примеры запросов и ответов, что осознанно не вошло в MVP</p></div>
+  </div>
+
+  <h2>Границы кейса</h2>
+  <div class="note">
+    Это бэкенд: интерфейса здесь нет. Вёрстка и визуальный слой — отдельный этап по ТЗ для дизайнера.
+    Публичный адрес нужен только для запуска с Node-рантаймом (Railway, Render и подобные): статический хостинг API не выполнит.
+  </div>
+
+  <footer>
+    Учебный кейс по курсу «Фриланс с гарантией дохода» · урок FGIp07 · 15.09.2026
+  </footer>
+</div>
+</html>
