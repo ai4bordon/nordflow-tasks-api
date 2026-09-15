@@ -1,0 +1,233 @@
+:root {
+  --fjord: #0b2e4f;
+  --snow: #f4f7fa;
+  --teal: #00a9a5;
+  --sun: #ff7a59;
+  --graphite: #1b2735;
+  --line: #dbe3ec;
+  --danger: #b3261e;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+body {
+  font-family:
+    "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: var(--snow);
+  color: var(--graphite);
+}
+h1,
+h2,
+h3,
+.hfont {
+  font-family: "Montserrat", "Inter", system-ui, sans-serif;
+  text-wrap: balance;
+}
+.num,
+.mono {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-variant-numeric: tabular-nums;
+}
+:not(.num):not(.mono):not(code):not(pre) {
+  font-variant-numeric: inherit;
+}
+
+/* Инженерная чертежность: сетка за экраном входа */
+.blueprint {
+  background-color: #0b2e4f;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.055) 1px, transparent 1px),
+    linear-gradient(rgba(255, 255, 255, 0.11) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.11) 1px, transparent 1px);
+  background-size:
+    16px 16px,
+    16px 16px,
+    80px 80px,
+    80px 80px;
+}
+
+/* Тик метки у заголовков разделов */
+.tick {
+  position: relative;
+  padding-left: 18px;
+}
+.tick::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 4px;
+  bottom: 4px;
+  width: 8px;
+  background:
+    linear-gradient(var(--teal), var(--teal)) left top / 8px 2px no-repeat,
+    linear-gradient(var(--teal), var(--teal)) left center / 5px 2px no-repeat,
+    linear-gradient(var(--teal), var(--teal)) left bottom / 8px 2px no-repeat;
+}
+
+/* Приоритет тональными плашками, не пилюлями */
+.prio {
+  border-left: 4px solid transparent;
+  background: #eef2f6;
+  color: #1b2735;
+  padding: 2px 8px;
+  font-size: 12px;
+  line-height: 20px;
+  display: inline-block;
+}
+.prio-low {
+  border-color: #8aa0b4;
+  background: #edf1f5;
+}
+.prio-medium {
+  border-color: #00a9a5;
+  background: #e3f4f3;
+}
+.prio-high {
+  border-color: #d97a1f;
+  background: #faf0e2;
+}
+.prio-critical {
+  border-color: #b3261e;
+  background: #fbe9e7;
+}
+
+.status-tag {
+  background: #e8eef4;
+  color: #0b2e4f;
+  font-size: 12px;
+  padding: 2px 8px;
+  display: inline-block;
+  white-space: nowrap;
+}
+.status-tag.on {
+  background: #d9efee;
+  color: #074e4c;
+}
+
+.card-overdue {
+  background: #fdf3f2;
+  border: 1px solid #e5b8b4;
+}
+.row-overdue {
+  background: #fdf3f2;
+}
+
+button,
+a,
+input,
+select,
+textarea,
+[tabindex] {
+  min-height: 0;
+}
+.btn-touch {
+  min-height: 44px;
+}
+.navbtn {
+  min-height: 44px;
+}
+
+:focus-visible {
+  outline: 3px solid #00a9a5;
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+.btn-primary {
+  background: var(--fjord);
+  color: #fff;
+}
+.btn-primary:hover {
+  background: #123c66;
+}
+.btn-primary:active {
+  background: #081f36;
+}
+.btn-primary:disabled {
+  background: #9db0c2;
+  cursor: not-allowed;
+}
+.btn-cta {
+  background: var(--sun);
+  color: #1b2735;
+}
+.btn-cta:hover {
+  background: #ff8d70;
+}
+.btn-cta:active {
+  background: #e56a4a;
+}
+.btn-ghost:hover {
+  background: #e8eef4;
+}
+.btn-ghost:active {
+  background: #dbe3ec;
+}
+
+.dnd-over {
+  outline: 2px dashed #00a9a5;
+  outline-offset: -2px;
+  background: #e3f4f3;
+}
+.dragging {
+  opacity: 0.5;
+}
+
+.skel {
+  position: relative;
+  overflow: hidden;
+  background: #e3e9f0;
+}
+.skel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.6),
+    transparent
+  );
+  animation: sk 1.2s infinite;
+}
+@keyframes sk {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@media (max-width: 640px) {
+  .resp-table thead {
+    display: none;
+  }
+  .resp-table,
+  .resp-table tbody,
+  .resp-table tr,
+  .resp-table td {
+    display: block;
+    width: 100%;
+  }
+  .resp-table tr {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    margin-bottom: 10px;
+    padding: 10px 12px;
+  }
+  .resp-table td {
+    border: 0;
+    padding: 4px 0;
+  }
+  .resp-table td::before {
+    content: attr(data-th);
+    display: block;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #5b6b7d;
+  }
+}

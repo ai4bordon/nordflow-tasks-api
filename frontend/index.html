@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NordFlow Tasks</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Montserrat:wght@600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: { extend: {
+    colors: { fjord: "#0B2E4F", snow: "#F4F7FA", teal: "#00A9A5", sun: "#FF7A59", graphite: "#1B2735" },
+    fontFamily: { head: ["Montserrat", "Inter", "system-ui", "sans-serif"], body: ["Inter", "system-ui", "sans-serif"] }
+  } }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body class="font-body">
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-bell" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2a4 4 0 0 0-4 4v2.5L2.8 10h10.4L12 8.5V6a4 4 0 0 0-4-4ZM6.5 12a1.5 1.5 0 0 0 3 0"/></symbol>
+    <symbol id="i-search" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="7" r="4.2"/><path d="m10.3 10.3 3.2 3.2"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 3v10M3 8h10"/></symbol>
+    <symbol id="i-x" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="m4 4 8 8M12 4l-8 8"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1.5 8S4 3.8 8 3.8 14.5 8 14.5 8 12 12.2 8 12.2 1.5 8 1.5 8Z"/><circle cx="8" cy="8" r="1.8"/></symbol>
+    <symbol id="i-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="m3 8.5 3.2 3L13 4.5"/></symbol>
+    <symbol id="i-cal" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="12" height="11" rx="1"/><path d="M2 6.5h12M5.5 1.5V4M10.5 1.5V4"/></symbol>
+    <symbol id="i-user" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="5" r="2.6"/><path d="M2.5 13.5c.8-2.6 3-4 5.5-4s4.7 1.4 5.5 4"/></symbol>
+    <symbol id="i-board" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="12" height="12" rx="1"/><path d="M6.5 2v12M10.5 2v12"/></symbol>
+    <symbol id="i-out" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 3H3v10h3M10 5.5 12.5 8 10 10.5M12.5 8H6.5"/></symbol>
+    <symbol id="i-msg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2.5 3h11v8h-6l-3 2.5v-2.5h-2V3Z"/></symbol>
+  </defs>
+</svg>
+
+<!-- ЭКРАН ВХОДА -->
+<section id="view-login" class="min-h-screen blueprint hidden">
+  <div class="min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-md bg-white rounded-lg shadow-lg p-6 sm:p-8">
+      <p class="num text-xs tracking-widest text-slate-500">NORDFLOW. TASKS</p>
+      <h1 class="font-head text-2xl font-bold text-fjord mt-1">Вход в рабочее место</h1>
+      <p class="text-sm text-slate-600 mt-2">Регистрации нет. Учетную запись выдает администратор. Если доступа нет, обратитесь к администратору.</p>
+      <form id="login-form" class="mt-5" novalidate>
+        <label class="block text-sm font-medium" for="login-email">Почта</label>
+        <input id="login-email" name="email" type="email" autocomplete="username" required
+          class="mt-1 w-full border border-slate-300 rounded px-3 btn-touch" placeholder="vasya@nordflow.io">
+        <p id="err-email" class="text-sm text-red-700 mt-1 hidden"></p>
+        <label class="block text-sm font-medium mt-4" for="login-pass">Пароль</label>
+        <div class="mt-1 flex gap-2">
+          <input id="login-pass" name="password" type="password" autocomplete="current-password" required
+            class="flex-1 border border-slate-300 rounded px-3 btn-touch" placeholder="Пароль">
+          <button type="button" id="btn-showpass" class="btn-touch px-3 border border-slate-300 rounded btn-ghost" aria-label="Показать пароль" aria-pressed="false">
+            <svg width="16" height="16" aria-hidden="true"><use href="#i-eye"/></svg>
+          </button>
+        </div>
+        <p id="err-pass" class="text-sm text-red-700 mt-1 hidden"></p>
+        <p id="err-login" class="text-sm text-red-700 mt-3 hidden" role="alert"></p>
+        <button id="btn-login" type="submit" class="btn-touch w-full mt-5 rounded btn-primary font-medium">Войти</button>
+      </form>
+      <div class="mt-5 border-t pt-4">
+        <p class="text-xs text-slate-500">Быстрый вход (демо):</p>
+        <div class="mt-2 flex flex-wrap gap-2" id="demo-box"></div>
+        <p id="demo-hint" class="text-xs text-slate-500 mt-2 hidden"></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ПРИЛОЖЕНИЕ -->
+<div id="view-app" class="hidden min-h-screen">
+  <header class="bg-fjord text-white sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto px-3 sm:px-4 flex items-center gap-2 h-16">
+      <span class="font-head font-bold text-lg whitespace-nowrap">NordFlow <span class="text-teal">Tasks</span></span>
+      <nav class="hidden md:flex items-center gap-1 ml-4" aria-label="Основная">
+        <button data-nav="dashboard" class="navbtn px-3 rounded text-sm hover:bg-white/10">Главная</button>
+        <button data-nav="tasks" class="navbtn px-3 rounded text-sm hover:bg-white/10">Задачи</button>
+        <button data-nav="board" class="navbtn px-3 rounded text-sm hover:bg-white/10">Доска</button>
+        <button data-nav="team" class="navbtn px-3 rounded text-sm hover:bg-white/10">Команда</button>
+      </nav>
+      <div class="flex-1"></div>
+      <div class="hidden sm:flex items-center relative">
+        <svg width="16" height="16" class="absolute left-2 text-slate-300" aria-hidden="true"><use href="#i-search"/></svg>
+        <input id="global-search" type="search" placeholder="Поиск: ключ, задача, человек" aria-label="Глобальный поиск"
+          class="h-10 w-52 lg:w-64 rounded bg-white/10 placeholder:text-slate-300 pl-8 pr-2 text-sm border border-white/20">
+        <div id="search-results" class="hidden absolute top-11 right-0 w-80 bg-white text-graphite rounded shadow-lg p-2 text-sm max-h-96 overflow-auto"></div>
+      </div>
+      <button id="btn-create" class="btn-touch px-3 sm:px-4 rounded btn-cta text-sm font-semibold flex items-center gap-1" aria-label="Создать задачу">
+        <svg width="16" height="16" aria-hidden="true"><use href="#i-plus"/></svg><span class="hidden sm:inline">Задача</span>
+      </button>
+      <button id="btn-bell" class="btn-touch w-11 rounded hover:bg-white/10 relative flex items-center justify-center" aria-label="Уведомления">
+        <svg width="16" height="16" aria-hidden="true"><use href="#i-bell"/></svg>
+        <span id="bell-count" class="num hidden absolute top-1 right-1 bg-sun text-graphite text-[11px] leading-4 px-1 rounded">0</span>
+      </button>
+      <span id="me-name" class="hidden lg:block text-sm text-slate-200 max-w-40 truncate"></span>
+      <button id="btn-logout" class="btn-touch w-11 rounded hover:bg-white/10 flex items-center justify-center" aria-label="Выйти">
+        <svg width="16" height="16" aria-hidden="true"><use href="#i-out"/></svg>
+      </button>
+    </div>
+    <nav class="md:hidden flex gap-1 px-3 pb-2 overflow-x-auto" aria-label="Основная мобильная">
+      <button data-nav="dashboard" class="navbtn px-3 rounded text-sm bg-white/10 whitespace-nowrap">Главная</button>
+      <button data-nav="tasks" class="navbtn px-3 rounded text-sm bg-white/10 whitespace-nowrap">Задачи</button>
+      <button data-nav="board" class="navbtn px-3 rounded text-sm bg-white/10 whitespace-nowrap">Доска</button>
+      <button data-nav="team" class="navbtn px-3 rounded text-sm bg-white/10 whitespace-nowrap">Команда</button>
+    </nav>
+  </header>
+
+  <main id="main" class="max-w-7xl mx-auto px-3 sm:px-4 py-5">
+
+    <section id="page-dashboard" class="hidden">
+      <h1 class="font-head text-2xl font-bold tick">Главная</h1>
+      <div id="dash-state"></div>
+      <div id="dash-body" class="hidden">
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-4" id="dash-counters"></div>
+        <div class="grid lg:grid-cols-2 gap-4 mt-4">
+          <div class="bg-white border rounded p-4">
+            <h2 class="font-head font-semibold tick">Задачи по статусам</h2>
+            <div class="h-56"><canvas id="ch-status" aria-label="Диаграмма задач по статусам"></canvas></div>
+          </div>
+          <div class="bg-white border rounded p-4" id="load-card">
+            <h2 class="font-head font-semibold tick">Нагрузка по сотрудникам</h2>
+            <div class="h-56"><canvas id="ch-load" aria-label="Диаграмма нагрузки"></canvas></div>
+          </div>
+        </div>
+        <div class="grid lg:grid-cols-2 gap-4 mt-4">
+          <div class="bg-white border rounded p-4">
+            <h2 class="font-head font-semibold tick">Ближайшие дедлайны</h2>
+            <div id="dash-upcoming" class="mt-2 overflow-x-auto"></div>
+          </div>
+          <div class="bg-white border rounded p-4">
+            <h2 class="font-head font-semibold tick">Последние изменения</h2>
+            <ul id="dash-recent" class="mt-2 space-y-2 text-sm"></ul>
+          </div>
+        </div>
+        <div class="bg-white border rounded p-4 mt-4">
+          <h2 class="font-head font-semibold tick">Мои проекты</h2>
+          <div id="dash-projects" class="mt-2 grid sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="page-tasks" class="hidden">
+      <h1 class="font-head text-2xl font-bold tick">Задачи</h1>
+      <form id="task-filters" class="mt-3 bg-white border rounded p-3 grid sm:grid-cols-3 lg:grid-cols-6 gap-2 items-end">
+        <div><label class="text-xs font-medium" for="f-status">Статус</label>
+          <select id="f-status" class="btn-touch mt-1 w-full border rounded px-2 text-sm"><option value="">Все</option><option value="backlog">Бэклог</option><option value="planned">Запланировано</option><option value="in_progress">В работе</option><option value="review">На проверке</option><option value="done">Выполнено</option></select></div>
+        <div><label class="text-xs font-medium" for="f-project">Проект</label><select id="f-project" class="btn-touch mt-1 w-full border rounded px-2 text-sm"><option value="">Все</option></select></div>
+        <div><label class="text-xs font-medium" for="f-prio">Приоритет</label>
+          <select id="f-prio" class="btn-touch mt-1 w-full border rounded px-2 text-sm"><option value="">Все</option><option value="low">Низкий</option><option value="medium">Средний</option><option value="high">Высокий</option><option value="critical">Критический</option></select></div>
+        <div><label class="text-xs font-medium" for="f-q">Поиск</label><input id="f-q" type="search" class="btn-touch mt-1 w-full border rounded px-2 text-sm" placeholder="Название или ключ"></div>
+        <label class="flex items-center gap-2 text-sm btn-touch"><input id="f-over" type="checkbox" class="w-5 h-5 accent-teal-700"> Только просроченные</label>
+        <button type="button" id="f-reset" class="btn-touch px-3 border rounded text-sm btn-ghost">Сбросить</button>
+      </form>
+      <p id="f-active" class="text-xs text-slate-500 mt-2"></p>
+      <div id="tasks-state"></div>
+      <div class="mt-2 overflow-x-auto"><table class="resp-table w-full text-sm bg-white border rounded hidden" id="tasks-table">
+        <thead><tr class="text-left text-xs text-slate-500 border-b">
+          <th class="p-2">Задача</th><th class="p-2">Проект</th><th class="p-2">Статус</th><th class="p-2">Приоритет</th><th class="p-2">Срок</th><th class="p-2">Постановщик</th>
+        </tr></thead><tbody id="tasks-rows"></tbody>
+      </table></div>
+    </section>
+
+    <section id="page-board" class="hidden">
+      <div class="flex flex-wrap items-center gap-2">
+        <h1 class="font-head text-2xl font-bold tick">Доска проекта</h1>
+        <select id="board-project" class="btn-touch border rounded px-2 text-sm ml-auto" aria-label="Проект для доски"></select>
+      </div>
+      <p class="text-xs text-slate-500 mt-1 md:hidden">Подсказка: доска прокручивается вбок.</p>
+      <div id="board-state"></div>
+      <div id="board-cols" class="mt-3 flex gap-3 overflow-x-auto pb-3 items-start"></div>
+    </section>
+
+    <section id="page-team" class="hidden">
+      <h1 class="font-head text-2xl font-bold tick">Команда</h1>
+      <div id="team-state"></div>
+      <div class="mt-2 overflow-x-auto"><table class="resp-table w-full text-sm bg-white border rounded hidden" id="team-table">
+        <thead><tr class="text-left text-xs text-slate-500 border-b"><th class="p-2">Имя</th><th class="p-2">Должность</th><th class="p-2">Активные</th><th class="p-2">Просроченные</th><th class="p-2">Загрузка</th></tr></thead>
+        <tbody id="team-rows"></tbody>
+      </table></div>
+    </section>
+
+    <section id="page-notifs" class="hidden">
+      <div class="flex items-center gap-2">
+        <h1 class="font-head text-2xl font-bold tick">Уведомления</h1>
+        <button id="btn-readall" class="btn-touch ml-auto px-3 border rounded text-sm btn-ghost">Прочитать все</button>
+      </div>
+      <div id="notif-state"></div>
+      <ul id="notif-list" class="mt-3 space-y-2"></ul>
+    </section>
+
+  </main>
+</div>
+
+<!-- DRAWER ЗАДАЧИ -->
+<div id="drawer-wrap" class="hidden fixed inset-0 z-40">
+  <div id="drawer-back" class="absolute inset-0 bg-black/40"></div>
+  <aside class="absolute right-0 top-0 bottom-0 w-full sm:w-[480px] bg-white shadow-xl overflow-y-auto p-4 sm:p-5" role="dialog" aria-modal="true" aria-label="Карточка задачи">
+    <div class="flex items-start gap-2">
+      <div><p id="d-key" class="num text-xs text-slate-500"></p><h2 id="d-title" class="font-head text-lg font-bold"></h2></div>
+      <button id="d-close" class="btn-touch w-11 rounded border ml-auto flex items-center justify-center btn-ghost" aria-label="Закрыть задачу"><svg width="16" height="16" aria-hidden="true"><use href="#i-x"/></svg></button>
+    </div>
+    <div id="drawer-state"></div>
+    <div id="drawer-body" class="hidden">
+      <div id="d-meta" class="text-sm mt-2 space-y-1"></div>
+      <h3 class="font-head font-semibold mt-4">Статус</h3>
+      <ol id="d-stepper" class="mt-2 flex flex-wrap gap-1"></ol>
+      <p id="d-stepper-note" class="text-xs text-slate-500 mt-1"></p>
+      <h3 class="font-head font-semibold mt-4">Описание</h3>
+      <p id="d-desc" class="text-sm mt-1 whitespace-pre-wrap"></p>
+      <h3 class="font-head font-semibold mt-4">Комментарии</h3>
+      <ul id="d-comments" class="mt-2 space-y-2 text-sm"></ul>
+      <form id="d-comment-form" class="mt-2 flex gap-2">
+        <label class="sr-only" for="d-comment-text">Новый комментарий</label>
+        <input id="d-comment-text" class="btn-touch flex-1 border rounded px-3 text-sm" placeholder="Написать комментарий" maxlength="2000">
+        <button class="btn-touch px-4 rounded btn-primary text-sm" type="submit">Отправить</button>
+      </form>
+      <p id="d-comment-err" class="text-sm text-red-700 mt-1 hidden"></p>
+      <h3 class="font-head font-semibold mt-4">История</h3>
+      <ul id="d-history" class="mt-2 space-y-1 text-sm text-slate-600"></ul>
+    </div>
+  </aside>
+</div>
+
+<!-- МОДАЛКА СОЗДАНИЯ -->
+<div id="modal-wrap" class="hidden fixed inset-0 z-40">
+  <div class="absolute inset-0 bg-black/40" data-close-modal></div>
+  <div class="absolute inset-x-0 bottom-0 sm:inset-0 sm:flex sm:items-center sm:justify-center p-0 sm:p-4 pointer-events-none">
+    <form id="create-form" class="pointer-events-auto bg-white w-full sm:max-w-lg rounded-t-xl sm:rounded-lg p-4 sm:p-6 max-h-[92vh] overflow-y-auto" role="dialog" aria-modal="true" aria-label="Новая задача" novalidate>
+      <div class="flex items-center"><h2 class="font-head text-lg font-bold">Новая задача</h2>
+        <button type="button" data-close-modal class="btn-touch w-11 rounded border ml-auto flex items-center justify-center btn-ghost" aria-label="Закрыть форму"><svg width="16" height="16" aria-hidden="true"><use href="#i-x"/></svg></button></div>
+      <label class="block text-sm font-medium mt-3" for="c-title">Название *</label>
+      <input id="c-title" class="btn-touch mt-1 w-full border rounded px-3 text-sm" maxlength="200">
+      <p class="text-xs text-red-700 mt-1 hidden" data-err="c-title"></p>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <div><label class="block text-sm font-medium mt-3" for="c-project">Проект *</label><select id="c-project" class="btn-touch mt-1 w-full border rounded px-2 text-sm"></select>
+          <p class="text-xs text-red-700 mt-1 hidden" data-err="c-project"></p></div>
+        <div><label class="block text-sm font-medium mt-3" for="c-assignee">Исполнитель</label><select id="c-assignee" class="btn-touch mt-1 w-full border rounded px-2 text-sm"><option value="">Без исполнителя</option></select></div>
+        <div><label class="block text-sm font-medium mt-3" for="c-prio">Приоритет</label>
+          <select id="c-prio" class="btn-touch mt-1 w-full border rounded px-2 text-sm"><option value="low">Низкий</option><option value="medium" selected>Средний</option><option value="high">Высокий</option><option value="critical">Критический</option></select></div>
+        <div><label class="block text-sm font-medium mt-3" for="c-due">Дедлайн</label><input id="c-due" type="date" class="btn-touch mt-1 w-full border rounded px-2 text-sm"></div>
+      </div>
+      <label class="block text-sm font-medium mt-3" for="c-desc">Описание</label>
+      <textarea id="c-desc" rows="3" class="mt-1 w-full border rounded px-3 py-2 text-sm" maxlength="5000"></textarea>
+      <label class="block text-sm font-medium mt-3" for="c-tags">Теги (через запятую)</label>
+      <input id="c-tags" class="btn-touch mt-1 w-full border rounded px-3 text-sm" placeholder="важное, сайт">
+      <p id="c-form-err" class="text-sm text-red-700 mt-2 hidden" role="alert"></p>
+      <div class="mt-4 flex gap-2">
+        <button type="button" data-close-modal class="btn-touch px-4 border rounded text-sm btn-ghost">Отмена</button>
+        <button id="c-submit" type="submit" class="btn-touch px-4 rounded btn-cta text-sm font-semibold">Создать задачу</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ПАНЕЛЬ УВЕДОМЛЕНИЙ -->
+<div id="bell-panel" class="hidden fixed top-16 right-2 sm:right-4 z-40 w-[calc(100%-16px)] max-w-sm bg-white border rounded shadow-xl p-3">
+  <div class="flex items-center"><h2 class="font-head font-semibold">Уведомления</h2>
+    <button id="bell-goto" class="text-sm text-teal-800 underline ml-auto btn-touch px-2">Все</button></div>
+  <ul id="bell-list" class="mt-2 space-y-2 text-sm max-h-80 overflow-auto"></ul>
+</div>
+
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
