@@ -2,7 +2,7 @@
   "name": "nordflow-tasks-api",
   "version": "1.0.0",
   "private": true,
-  "description": "NordFlow Tasks — бэкенд внутреннего трекера проектов и задач (MVP по ТЗ клиента)",
+  "description": "NordFlow Tasks — трекер проектов и задач: бэкенд и веб-интерфейс (учебный прототип)",
   "type": "module",
   "engines": {
     "node": ">=20"

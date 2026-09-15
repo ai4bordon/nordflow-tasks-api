@@ -462,6 +462,25 @@ function writeHistory(state, taskId, userId, field, from, to) {
   });
 }
 
+/** Подпись события истории для интерфейса: без сырых кодов вроде in_progress. */
+function historyText(state, h) {
+  const task = state.tasks.find((t) => t.id === h.taskId);
+  const prefix = task ? `${task.key} · ` : "";
+  if (h.field === "created") return `${prefix}задача создана`;
+  if (h.field === "status")
+    return `${prefix}статус: ${STATUS_TITLES[h.from] ?? h.from} → ${STATUS_TITLES[h.to] ?? h.to}`;
+  if (h.field === "assigneeId") {
+    const who = (id) =>
+      id ? (state.users.find((u) => u.id === id)?.name ?? id) : "не назначен";
+    return `${prefix}исполнитель: ${who(h.from)} → ${who(h.to)}`;
+  }
+  if (h.field === "dueDate") {
+    const day = (iso) => (iso ? String(iso).slice(0, 10) : "без срока");
+    return `${prefix}срок: ${day(h.from)} → ${day(h.to)}`;
+  }
+  return `${prefix}${h.field}: ${h.from ?? ""} → ${h.to ?? ""}`;
+}
+
 const publicUser = (u) => ({
   id: u.id,
   name: u.name,
@@ -1013,6 +1032,7 @@ export function createApp({ store, today = () => new Date() }) {
             ...h,
             user: s.users.find((u) => u.id === h.userId)?.name ?? "—",
             statusTitle: STATUS_TITLES[h.to] ?? h.to,
+            text: historyText(s, h),
           }))
           .toReversed(),
         canEdit: canEditTask(user, task, project),
@@ -1355,7 +1375,7 @@ export function createApp({ store, today = () => new Date() }) {
             taskId: h.taskId,
             at: h.at,
             user: s.users.find((u) => u.id === h.userId)?.name ?? "—",
-            text: `${h.field}: ${h.from ?? "—"} → ${h.to}`,
+            text: historyText(s, h),
           })),
         myProjects: visibleProjects(user).map((p) => ({
           id: p.id,

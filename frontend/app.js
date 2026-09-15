@@ -434,7 +434,7 @@
             ? rec
                 .map(
                   (h) =>
-                    `<li class="border-b pb-2"><span class="font-medium">${esc(h.user)}</span> <button class="text-teal-800 underline" data-open="${esc(h.taskId)}">открыть задачу</button><span class="text-slate-500">: ${esc(h.text)}</span> <span class="num text-xs text-slate-400 block">${esc(fmtDT(h.at))}</span></li>`,
+                    `<li class="border-b pb-2 flex items-baseline justify-between gap-2"><span><span class="font-medium">${esc(h.user)}</span> <span class="text-slate-500">${esc(h.text)}</span></span><span class="shrink-0"><button class="text-teal-800 underline" data-open="${esc(h.taskId)}">открыть</button> <span class="num text-xs text-slate-400">${esc(fmtDT(h.at))}</span></span></li>`,
                 )
                 .join("")
             : `<li class="text-slate-500">Изменений пока нет.</li>`,
@@ -854,7 +854,7 @@
             ? hist
                 .map(
                   (h) =>
-                    `<li><span class="font-medium">${esc(h.user)}</span>: ${esc(h.field)}, ${esc(String(h.from == null ? "" : h.from))} → ${esc(String(h.to == null ? "" : h.to))} <span class="num text-xs text-slate-400">${esc(fmtDT(h.at))}</span></li>`,
+                    `<li><span class="font-medium">${esc(h.user)}</span>: ${esc(h.text)} <span class="num text-xs text-slate-400">${esc(fmtDT(h.at))}</span></li>`,
                 )
                 .join("")
             : "<li>История пуста.</li>",
