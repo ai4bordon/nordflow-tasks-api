@@ -1155,6 +1155,18 @@
         if (!$("page-board").classList.contains("hidden")) loadBoard();
         else if ($("page-tasks").classList.contains("hidden")) nav("tasks");
         else loadTasks();
+      })
+      .catch((err) => {
+        const m = $("c-form-err");
+        m.textContent = err.message || "Не получилось создать задачу.";
+        m.classList.remove("hidden");
+      })
+      .finally(() => {
+        btn.disabled = false;
+        btn.textContent = "Создать задачу";
+      });
+  });
+
   $("project-form").addEventListener("submit", (e) => {
     e.preventDefault();
     const name = $("p-name").value.trim();
@@ -1206,17 +1218,6 @@
       .finally(() => {
         btn.disabled = false;
         btn.textContent = "Создать проект";
-      });
-  });
-      })
-      .catch((err) => {
-        const m = $("c-form-err");
-        m.textContent = err.message || "Не получилось создать задачу.";
-        m.classList.remove("hidden");
-      })
-      .finally(() => {
-        btn.disabled = false;
-        btn.textContent = "Создать задачу";
       });
   });
 
