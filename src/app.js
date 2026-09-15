@@ -75,7 +75,8 @@ function nextId(state, key, prefix, items) {
 }
 
 /** Демонстрационные данные по ТЗ, п. 23: 8 пользователей, 3 проекта, 25+ задач. */
-export function demoData(today = new Date()) {
+export function demoData(today = new Date(), password) {
+  if (!password) throw new Error("demoData: укажите пароль демо-учёток");
   const day = (shift) =>
     new Date(startOfDay(today).getTime() + shift * DAY).toISOString();
   const users = [
@@ -137,7 +138,7 @@ export function demoData(today = new Date()) {
     },
   ].map((u) => ({
     ...u,
-    password: hashPassword("nordflow"),
+    password: hashPassword(password),
     theme: "light",
     createdAt: day(-120),
   }));
@@ -359,6 +360,15 @@ export function demoData(today = new Date()) {
     history,
     sessions: {},
     seq,
+    meta: {
+      demo: true,
+      demoPassword: password,
+      demoAccounts: users.map((u) => ({
+        email: u.email,
+        role: u.role,
+        name: u.name,
+      })),
+    },
     notifications: [
       {
         id: "n1",
@@ -547,6 +557,32 @@ export function createApp({ store, today = () => new Date() }) {
     }
     return error(404, "Маршрут не найден");
   }
+
+  // ---------- демо-доступ ----------
+  // Пароль демо-учёток существует только здесь: генерируется при первом запуске
+  // и показывается в консоли сервера. В репозитории паролей нет.
+  // Только для локального демо: в бою эту ручку удалить.
+  route(
+    "GET",
+    "/api/demo",
+    () => {
+      const meta = state().meta;
+      if (!meta || !meta.demoPassword) {
+        return error(
+          404,
+          "Демо-данные отсутствуют: удалите data/store.json и перезапустите сервер",
+        );
+      }
+      return {
+        status: 200,
+        body: {
+          password: meta.demoPassword,
+          accounts: meta.demoAccounts,
+        },
+      };
+    },
+    { public: true },
+  );
 
   // ---------- авторизация (ТЗ, п. 7) ----------
   route(

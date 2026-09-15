@@ -2,16 +2,20 @@
 // Тесты ходят в ядро напрямую — порт не поднимается, данные не пишутся на диск.
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { randomBytes } from "node:crypto";
 import { createApp, createStore, demoData } from "../src/app.js";
 
 const TODAY = new Date("2026-09-15T09:00:00Z");
+// Пароль демо-учёток генерируется на каждый прогон — в тестах, как и в проде,
+// статических паролей нет.
+const PW = randomBytes(8).toString("hex");
 
 function setup() {
-  const store = createStore(demoData(TODAY));
+  const store = createStore(demoData(TODAY, PW));
   const app = createApp({ store, today: () => TODAY });
   const login = (email) =>
     app.dispatch("POST", "/api/login", {
-      body: { email, password: "nordflow" },
+      body: { email, password: PW },
     }).body.token;
   return { app, store, login };
 }
