@@ -347,7 +347,10 @@ test("Вложения принимают только http(s)-ссылки", ()
   assert.equal(
     app.dispatch("POST", "/api/tasks", {
       token,
-      body: { ...base, attachments: [{ title: "x", url: "javascript:alert(1)" }] },
+      body: {
+        ...base,
+        attachments: [{ title: "x", url: "javascript:alert(1)" }],
+      },
     }).status,
     400,
     "javascript:-схема отклоняется",

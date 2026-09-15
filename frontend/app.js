@@ -1077,7 +1077,10 @@
     setHTML(
       lead,
       (usersCache || [])
-        .map((u) => `<option value="${esc(u.id)}">${esc(u.name)} (${esc(u.role === "admin" ? "админ" : u.role === "pm" ? "рук." : "сотр.")})</option>`)
+        .map(
+          (u) =>
+            `<option value="${esc(u.id)}">${esc(u.name)} (${esc(u.role === "admin" ? "админ" : u.role === "pm" ? "рук." : "сотр.")})</option>`,
+        )
         .join(""),
     );
     if (me) lead.value = me.id;
@@ -1088,8 +1091,7 @@
           (u) =>
             `<label class="flex items-center gap-2 text-sm btn-touch"><input type="checkbox" value="${esc(u.id)}" class="w-5 h-5 accent-teal-700"${u.id === (me && me.id) ? " checked" : ""}> ${esc(u.name)}</label>`,
         )
-        .join("") ||
-        `<p class="text-sm text-slate-500">Нет пользователей.</p>`,
+        .join("") || `<p class="text-sm text-slate-500">Нет пользователей.</p>`,
     );
     $("p-name").focus();
   }
