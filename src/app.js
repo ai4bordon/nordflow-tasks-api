@@ -43,6 +43,37 @@ function checkPassword(password, stored) {
 const now = () => new Date().toISOString();
 const startOfDay = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
 
+/** Максимальный числовой суффикс id вида `u12` — стартовая точка счётчика. */
+function maxSuffix(items, prefix) {
+  let max = 0;
+  for (const it of items) {
+    if (typeof it.id === "string" && it.id.startsWith(prefix)) {
+      const n = Number(it.id.slice(prefix.length));
+      if (Number.isInteger(n)) max = Math.max(max, n);
+    }
+  }
+  return max;
+}
+
+/** Монотонный счётчик id: после удаления сущности id не переиспользуются,
+    иначе новая сущность унаследует ссылки удалённой (задачи, комментарии, история).
+    Старые хранилища без `seq` подхватываются сами: берётся максимум существующих id. */
+function nextId(state, key, prefix, items) {
+  if (!state.seq) state.seq = {};
+  if (!Number.isInteger(state.seq[key])) {
+    let max = 0;
+    for (const it of items) {
+      if (typeof it.id === "string" && it.id.startsWith(prefix)) {
+        const n = Number(it.id.slice(prefix.length));
+        if (Number.isInteger(n)) max = Math.max(max, n);
+      }
+    }
+    state.seq[key] = max;
+  }
+  state.seq[key] += 1;
+  return `${prefix}${state.seq[key]}`;
+}
+
 /** Демонстрационные данные по ТЗ, п. 23: 8 пользователей, 3 проекта, 25+ задач. */
 export function demoData(today = new Date()) {
   const day = (shift) =>
@@ -313,6 +344,13 @@ export function demoData(today = new Date()) {
     }
   }
 
+  const seq = {
+    users: maxSuffix(users, "u"),
+    projects: maxSuffix(projects, "p"),
+    tasks: maxSuffix(tasks, "t"),
+    comments: maxSuffix(comments, "c"),
+  };
+
   return {
     users,
     projects,
@@ -320,6 +358,7 @@ export function demoData(today = new Date()) {
     comments,
     history,
     sessions: {},
+    seq,
     notifications: [
       {
         id: "n1",
@@ -572,13 +611,16 @@ export function createApp({ store, today = () => new Date() }) {
     if (!name || !email) return error(400, "Нужны имя и почта");
     if (s.users.some((u) => u.email.toLowerCase() === email.toLowerCase()))
       return error(409, "Такая почта уже занята");
+    const password = String(body.password || "");
+    if (password.length < 6)
+      return error(400, "Укажите пароль не короче 6 символов");
     const created = {
-      id: `u${s.users.length + 1}`,
+      id: nextId(s, "users", "u", s.users),
       name,
       email,
       role,
       position: String(body.position || "").trim(),
-      password: hashPassword(String(body.password || "nordflow")),
+      password: hashPassword(password),
       theme: "light",
       createdAt: now(),
     };

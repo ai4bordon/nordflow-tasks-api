@@ -43,7 +43,12 @@ test("2. Администратор создаёт проект и пользо�
   const token = login("anna@nordflow.io");
   const created = app.dispatch("POST", "/api/users", {
     token,
-    body: { name: "Пётр Нов", email: "petr@nordflow.io", role: "employee" },
+    body: {
+      name: "Пётр Нов",
+      email: "petr@nordflow.io",
+      role: "employee",
+      password: "secret12",
+    },
   });
   assert.equal(created.status, 201);
   const project = app.dispatch("POST", "/api/projects", {
@@ -298,5 +303,30 @@ test("Сотрудник меняет статус своей задачи и о
       body: { text: "Отправил на проверку" },
     }).status,
     201,
+  );
+});
+
+test("Удалённый пользователь не отдаёт свой id новому", () => {
+  const { app, login } = setup();
+  const token = login("anna@nordflow.io");
+  assert.equal(app.dispatch("DELETE", "/api/users/u8", { token }).status, 200);
+  const created = app.dispatch("POST", "/api/users", {
+    token,
+    body: {
+      name: "Новый",
+      email: "new@nordflow.io",
+      role: "employee",
+      password: "secret12",
+    },
+  });
+  assert.equal(created.status, 201);
+  assert.equal(created.body.user.id, "u9", "id не переиспользуется");
+  assert.equal(
+    app.dispatch("POST", "/api/users", {
+      token,
+      body: { name: "Без пароля", email: "nopass@nordflow.io" },
+    }).status,
+    400,
+    "пароль обязателен",
   );
 });
