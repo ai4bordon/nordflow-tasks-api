@@ -476,6 +476,21 @@ const norm = (value) =>
   String(value ?? "")
     .toLowerCase()
     .replace(/ё/g, "е");
+
+/** Вложения-ссылки: принимаем только http(s). Иначе через href проскочит
+    javascript:-схема и выполнится по клику — esc() от неё не спасает. */
+function checkAttachments(list) {
+  if (list === undefined) return null;
+  if (!Array.isArray(list)) return "Вложения передаются массивом";
+  for (const a of list) {
+    if (a && typeof a === "object" && a.url) {
+      const u = String(a.url).trim();
+      if (!/^https?:\/\//i.test(u))
+        return "Ссылка во вложении должна начинаться с http:// или https://";
+    }
+  }
+  return null;
+}
 const daysLeft = (due, today) =>
   Math.ceil((startOfDay(new Date(due)) - startOfDay(today)) / DAY);
 
@@ -932,6 +947,8 @@ export function createApp({ store, today = () => new Date() }) {
       : "medium";
     if (!body.assigneeId && status === "in_progress")
       return error(400, "Для статуса «В работе» нужен исполнитель");
+    const attachErr = checkAttachments(body.attachments);
+    if (attachErr) return error(400, attachErr);
     const num = s.tasks.filter((t) => t.projectId === project.id).length + 101;
     const task = {
       id: `t${s.tasks.length + 1}`,
@@ -1032,8 +1049,11 @@ export function createApp({ store, today = () => new Date() }) {
       task.priority = body.priority;
     if (body.tags !== undefined && Array.isArray(body.tags))
       task.tags = body.tags;
-    if (body.attachments !== undefined && Array.isArray(body.attachments))
-      task.attachments = body.attachments;
+    if (body.attachments !== undefined) {
+      const attachErr = checkAttachments(body.attachments);
+      if (attachErr) return error(400, attachErr);
+      if (Array.isArray(body.attachments)) task.attachments = body.attachments;
+    }
     if (body.dueDate !== undefined) {
       if (task.dueDate !== body.dueDate) {
         writeHistory(

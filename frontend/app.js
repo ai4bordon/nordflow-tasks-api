@@ -276,6 +276,9 @@
     $("me-name").textContent = me
       ? `${me.name}, ${me.position || me.role}`
       : "";
+    for (const b of document.querySelectorAll(".btn-project-new")) {
+      b.classList.toggle("hidden", !me || me.role !== "admin");
+    }
     refreshBell();
     api("/api/projects")
       .then((d) => {
@@ -682,31 +685,50 @@
         if (e.key === "Enter") openDrawer(card.getAttribute("data-task"));
       });
     }
-    for (const col of root.querySelectorAll(".col-body")) {
+    for (const col of root.querySelectorAll("[data-col]")) {
+      const body = col.querySelector(".col-body") || col;
+      const status =
+        col.getAttribute("data-col") ||
+        (body === col ? null : body.getAttribute("data-status"));
       col.addEventListener("dragover", (e) => {
         e.preventDefault();
-        col.classList.add("dnd-over");
+        try {
+          e.dataTransfer.dropEffect = "move";
+        } catch {}
+        body.classList.add("dnd-over");
       });
       col.addEventListener("dragleave", () => {
-        col.classList.remove("dnd-over");
+        body.classList.remove("dnd-over");
       });
       col.addEventListener("drop", (e) => {
         e.preventDefault();
-        col.classList.remove("dnd-over");
-        const id = e.dataTransfer.getData("text/plain");
-        const status = col.getAttribute("data-status");
-        if (!id || !status) return;
+        body.classList.remove("dnd-over");
+        let id = "";
+        try {
+          id = e.dataTransfer.getData("text/plain");
+        } catch {
+          id = "";
+        }
+        if (!id || !status) {
+          stateBox(
+            $("board-state"),
+            "error",
+            "Не получилось перенести: отпустите карточку над колонкой.",
+            refreshVisible,
+          );
+          return;
+        }
         api(`/api/tasks/${encodeURIComponent(id)}/status`, {
           method: "POST",
           body: { status },
         })
-          .then(loadBoard)
+          .then(refreshVisible)
           .catch((err) => {
             stateBox(
               $("board-state"),
               "error",
               err.message || "Не получилось перенести задачу.",
-              loadBoard,
+              refreshVisible,
             );
           });
       });
@@ -789,7 +811,7 @@
             })
               .then(() => {
                 openDrawer(t.id);
-                loadBoard();
+                refreshVisible();
               })
               .catch(() => {
                 b.disabled = false;
@@ -942,6 +964,15 @@
       })
       .catch(() => {});
   }
+  /* После любого изменения обновляем все видимые виды, а не только доску:
+     иначе правка из drawer видна лишь после ручного перехода по вкладкам. */
+  function refreshVisible() {
+    refreshBell();
+    if (!$("page-dashboard").classList.contains("hidden")) loadDashboard();
+    if (!$("page-tasks").classList.contains("hidden")) loadTasks();
+    if (!$("page-board").classList.contains("hidden")) loadBoard();
+    if (!$("page-team").classList.contains("hidden")) loadTeam();
+  }
   function loadNotifs() {
     const st = $("notif-state");
     const list = $("notif-list");
@@ -1031,14 +1062,47 @@
   /* Создание задачи */
   function openModal() {
     $("modal-wrap").classList.remove("hidden");
+    $("create-form").classList.remove("hidden");
+    $("project-form").classList.add("hidden");
     $("c-form-err").classList.add("hidden");
     if (!$("c-project").options.length) fillProjectSelects();
     $("c-title").focus();
+  }
+  function openProjectModal() {
+    $("modal-wrap").classList.remove("hidden");
+    $("create-form").classList.add("hidden");
+    $("project-form").classList.remove("hidden");
+    $("p-form-err").classList.add("hidden");
+    const lead = $("p-lead");
+    setHTML(
+      lead,
+      (usersCache || [])
+        .map((u) => `<option value="${esc(u.id)}">${esc(u.name)} (${esc(u.role === "admin" ? "админ" : u.role === "pm" ? "рук." : "сотр.")})</option>`)
+        .join(""),
+    );
+    if (me) lead.value = me.id;
+    setHTML(
+      $("p-members"),
+      (usersCache || [])
+        .map(
+          (u) =>
+            `<label class="flex items-center gap-2 text-sm btn-touch"><input type="checkbox" value="${esc(u.id)}" class="w-5 h-5 accent-teal-700"${u.id === (me && me.id) ? " checked" : ""}> ${esc(u.name)}</label>`,
+        )
+        .join("") ||
+        `<p class="text-sm text-slate-500">Нет пользователей.</p>`,
+    );
+    $("p-name").focus();
   }
   function closeModal() {
     $("modal-wrap").classList.add("hidden");
   }
   $("btn-create").addEventListener("click", openModal);
+  for (const b of document.querySelectorAll(".btn-project-new")) {
+    b.addEventListener("click", () => {
+      if (!me || me.role !== "admin") return;
+      openProjectModal();
+    });
+  }
   for (const b of document.querySelectorAll("[data-close-modal]")) {
     b.addEventListener("click", closeModal);
   }
@@ -1091,6 +1155,59 @@
         if (!$("page-board").classList.contains("hidden")) loadBoard();
         else if ($("page-tasks").classList.contains("hidden")) nav("tasks");
         else loadTasks();
+  $("project-form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const name = $("p-name").value.trim();
+    fieldErr("p-name", name ? "" : "Введите название проекта.");
+    $("p-form-err").classList.add("hidden");
+    if (!name) return;
+    const memberIds = [...$("p-members").querySelectorAll("input:checked")].map(
+      (c) => c.value,
+    );
+    const body = {
+      name,
+      description: $("p-desc").value.trim(),
+      leadId: $("p-lead").value || undefined,
+      memberIds,
+      status: $("p-status").value,
+      startDate: $("p-start").value
+        ? new Date(`${$("p-start").value}T12:00:00.000Z`).toISOString()
+        : undefined,
+      dueDate: $("p-due").value
+        ? new Date(`${$("p-due").value}T12:00:00.000Z`).toISOString()
+        : undefined,
+    };
+    const btn = $("p-submit");
+    btn.disabled = true;
+    btn.textContent = "Создаем...";
+    api("/api/projects", { method: "POST", body })
+      .then((d) => {
+        closeModal();
+        $("p-name").value = "";
+        $("p-desc").value = "";
+        $("p-start").value = "";
+        $("p-due").value = "";
+        return api("/api/projects").then((all) => {
+          projectsCache = all.projects || [];
+          fillProjectSelects();
+          fillAssigneeSelect();
+          if (d && d.project) {
+            boardProjectId = d.project.id;
+            $("board-project").value = boardProjectId;
+          }
+          refreshVisible();
+        });
+      })
+      .catch((err) => {
+        const box = $("p-form-err");
+        box.textContent = err.message || "Не получилось создать проект.";
+        box.classList.remove("hidden");
+      })
+      .finally(() => {
+        btn.disabled = false;
+        btn.textContent = "Создать проект";
+      });
+  });
       })
       .catch((err) => {
         const m = $("c-form-err");

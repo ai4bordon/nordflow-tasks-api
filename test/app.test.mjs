@@ -334,3 +334,38 @@ test("Удалённый пользователь не отдаёт свой id 
     "пароль обязателен",
   );
 });
+
+test("Вложения принимают только http(s)-ссылки", () => {
+  const { app, login } = setup();
+  const token = login("anna@nordflow.io");
+  const base = {
+    title: "Задача со ссылкой",
+    projectId: "p1",
+    assigneeId: "u4",
+    priority: "low",
+  };
+  assert.equal(
+    app.dispatch("POST", "/api/tasks", {
+      token,
+      body: { ...base, attachments: [{ title: "x", url: "javascript:alert(1)" }] },
+    }).status,
+    400,
+    "javascript:-схема отклоняется",
+  );
+  const ok = app.dispatch("POST", "/api/tasks", {
+    token,
+    body: {
+      ...base,
+      attachments: [{ title: "Макет", url: "https://figma.com/file/demo" }],
+    },
+  });
+  assert.equal(ok.status, 201);
+  assert.equal(
+    app.dispatch("PATCH", `/api/tasks/${ok.body.task.id}`, {
+      token,
+      body: { attachments: [{ title: "y", url: "data:text/html,hi" }] },
+    }).status,
+    400,
+    "data:-схема тоже отклоняется",
+  );
+});
