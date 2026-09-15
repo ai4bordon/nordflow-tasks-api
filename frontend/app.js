@@ -38,8 +38,8 @@
     return String(s == null ? "" : s).replace(/[&<>"']/g, (c) => map[c]);
   }
   /* Единственная точка вставки HTML в приложении: вся динамика экранирована через esc() выше. */
-  // pi-lens-ignore: no-inner-html-js
   function setHTML(el, html) {
+    // pi-lens-ignore: no-inner-html-js
     el.innerHTML = html;
   }
   function fmtDate(iso) {
@@ -303,8 +303,9 @@
     const empty = `<option value="">Нет проектов</option>`;
     setHTML($("board-project"), opts || empty);
     setHTML($("c-project"), opts || empty);
-    if (projectsCache.length && !boardProjectId)
-      boardProjectId = projectsCache[0].id;
+    // Проект мог уйти в архив или быть удалён — тогда доска молча пустела.
+    if (!projectsCache.some((p) => p.id === boardProjectId))
+      boardProjectId = projectsCache.length ? projectsCache[0].id : null;
     if (boardProjectId) $("board-project").value = boardProjectId;
   }
   function fillAssigneeSelect() {
@@ -643,7 +644,7 @@
           columns
             .map(
               (c) =>
-                `<div class="w-64 shrink-0 bg-slate-100 border rounded" data-col="${esc(c.status)}"><h2 class="font-head text-sm font-semibold p-2 border-b bg-white rounded-t">${esc(c.title)} <span class="num text-slate-500">${esc(String((c.tasks || []).length))}</span></h2><div class="p-2 space-y-2 min-h-24 col-body" data-status="${esc(c.status)}">${(c.tasks || []).map(cardHtml).join("")}</div></div>`,
+                `<div class="min-w-0 bg-slate-100 border rounded flex flex-col" data-col="${esc(c.status)}"><h2 class="font-head text-sm font-semibold p-2 border-b bg-white rounded-t">${esc(c.title)} <span class="num text-slate-500">${esc(String((c.tasks || []).length))}</span></h2><div class="p-2 space-y-2 min-h-24 col-body" data-status="${esc(c.status)}">${(c.tasks || []).map(cardHtml).join("")}</div></div>`,
             )
             .join(""),
         );
@@ -666,9 +667,24 @@
     const file = t.hasAttachments
       ? `<span class="text-xs text-slate-500">файл</span>`
       : "";
-    return `<article draggable="true" data-task="${esc(t.id)}" tabindex="0" aria-label="Задача ${esc(t.key)}" class="bg-white border rounded p-2 cursor-grab ${t.overdue ? "card-overdue" : ""}"><p class="num text-xs text-slate-500">${esc(t.key)}</p><p class="text-sm font-medium leading-snug">${esc(t.title)}</p><p class="text-xs text-slate-500 mt-1">Исполнитель: ${esc(t.assignee || "не назначен")}</p><div class="mt-1 flex items-center gap-1 flex-wrap">${prioHtml(t.priority)}<span class="num text-xs ${dateCls}">${esc(fmtDate(t.dueDate))}</span><span class="text-xs text-slate-500 inline-flex items-center gap-1"><svg width="16" height="16" aria-hidden="true"><use href="#i-msg"/></svg><span class="num">${esc(String(t.comments || 0))}</span></span>${file}</div>${over}</article>`;
+    return `<article draggable="true" data-task="${esc(t.id)}" tabindex="0" aria-label="Задача ${esc(t.key)}" class="bg-white border rounded p-2 cursor-grab ${t.overdue ? "card-overdue" : ""}"><p class="num text-xs text-slate-500">${esc(t.key)}</p><p class="text-sm font-medium leading-snug break-words">${esc(t.title)}</p><p class="text-xs text-slate-500 mt-1">Исполнитель: ${esc(t.assignee || "не назначен")}</p><div class="mt-1 flex items-center gap-1 flex-wrap">${prioHtml(t.priority)}<span class="num text-xs ${dateCls}">${esc(fmtDate(t.dueDate))}</span><span class="text-xs text-slate-500 inline-flex items-center gap-1"><svg width="16" height="16" aria-hidden="true"><use href="#i-msg"/></svg><span class="num">${esc(String(t.comments || 0))}</span></span>${file}</div>${over}</article>`;
   }
   function bindCards(root) {
+    if (root.dataset.dndReady !== "1") {
+      root.dataset.dndReady = "1";
+      root.addEventListener("dragover", (e) => e.preventDefault());
+      root.addEventListener("drop", (e) => {
+        // Сюда попадаем только при промахе в зазор между колонками.
+        if (e.target.closest("[data-col]")) return;
+        e.preventDefault();
+        stateBox(
+          $("board-state"),
+          "error",
+          "Карточка вернулась на место: отпустите её прямо над колонкой.",
+          refreshVisible,
+        );
+      });
+    }
     for (const card of root.querySelectorAll("[data-task]")) {
       card.addEventListener("dragstart", (e) => {
         card.classList.add("dragging");
@@ -727,7 +743,7 @@
             stateBox(
               $("board-state"),
               "error",
-              err.message || "Не получилось перенести задачу.",
+              `Карточка вернулась на место: ${err.message || "не получилось перенести задачу."}`,
               refreshVisible,
             );
           });
@@ -1079,7 +1095,7 @@
       (usersCache || [])
         .map(
           (u) =>
-            `<option value="${esc(u.id)}">${esc(u.name)} (${esc(u.role === "admin" ? "админ" : u.role === "pm" ? "рук." : "сотр.")})</option>`,
+            `<option value="${esc(u.id)}">${esc(u.name)} (${esc(ROLE_SHORT[u.role] || u.role)})</option>`,
         )
         .join(""),
     );
